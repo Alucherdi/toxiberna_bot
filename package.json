@@ -1,0 +1,20 @@
+{
+  "name": "toxiberna_bot",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "dev": "bun run --watch --bun src/index.ts",
+    "dev:debug": "bun run --watch --bun src/index.ts dev",
+    "start": "bun run --bun src/index.ts start"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "discord-api-types": "^0.37.101",
+    "seyfert": "^2.1.0"
+  }
+}

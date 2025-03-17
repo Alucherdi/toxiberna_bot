@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "discord-api-types": "^0.37.101",
+    "openai": "^4.87.3",
     "seyfert": "^2.1.0"
   }
 }

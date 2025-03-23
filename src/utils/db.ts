@@ -79,6 +79,7 @@ export default class UserDB {
         this.db.audit.push({
             type,
             from,
+            to,
             amount,
             timestamp
         });

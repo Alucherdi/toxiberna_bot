@@ -13,9 +13,17 @@ const options = {
     type: createStringOption({
         required: true,
         description: 'Tipo de scoreboard',
-        choices: Object.values(QueryType).map(value => ({ name: value, value }))
+        choices: Object.values(QueryType).map(value => ({ 
+            name: value.toLowerCase(), value 
+        }))
     }),
 };
+
+const names = {
+    [AuditType.TIMEOUT]: 'aislamientos',
+    [AuditType.MUTE]: 'muteos',
+    [AuditType.RENAME]: 'cambios de nombre'
+}
 
 @Options(options)
 @Declare({
@@ -40,7 +48,12 @@ export default class Scoreboard extends Command {
 
         let sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
 
-        let output = `Top ${query}:\n`;
+        if(sorted.length == 0) {
+            ctx.write({ content: `No hay datos para mostrar` });
+            return;
+        }
+
+        let output = `Top ${names[query]}:\n`;
         for (let i = 0; i < sorted.length; i++) {
             const [id, score] = sorted[i];
             output += `    ${i + 1}. <@${id}>: ${query == AuditType.RENAME ? score : `${(score / 1000) / 60} minutos`}\n`;

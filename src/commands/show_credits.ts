@@ -1,5 +1,5 @@
 import { Command, CommandContext, Declare, GuildRole } from "seyfert";
-import { load } from "../utils/db";
+import UserDB from "../utils/db";
 
 @Declare({
     name: "showcredits",
@@ -7,14 +7,9 @@ import { load } from "../utils/db";
 })
 export default class Credits extends Command {
     async run(ctx: CommandContext) {
-        const db = await load();
+        const udb = await UserDB.load()
         const id = ctx.member?.id;
-        let credits = 0;
 
-        if (db[id]) {
-            credits = db[id].credits;
-        }
-
-        ctx.write({ content: `${credits} credits` });
+        ctx.write({ content: `${await udb.retrieve(id)} credits` });
     }
 }

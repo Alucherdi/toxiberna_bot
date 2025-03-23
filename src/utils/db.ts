@@ -17,7 +17,7 @@ type AuditDef = {
 };
 
 type DatabaseDef = {
-    users: Map<string, UserDef>,
+    users: { [key: string]: UserDef },
     audit: AuditDef[];
 }
 
@@ -30,12 +30,12 @@ export default class UserDB {
 
     public modify(id: string, points: number) {
         if (!this.db.users[id]) {
-            this.db.users[id].credits = 0;
+            this.db.users[id] = { credits: 0 };
         }
 
         let { credits } = this.db.users[id];
         let operation = credits + points;
-        this.db.users[id] = operation;
+        this.db.users[id].credits = operation;
 
         this.db.audit.push({
             type: AuditType.MODIFY,
@@ -49,7 +49,7 @@ export default class UserDB {
         let result = false;
 
         if (!this.db.users[id]) {
-            this.db.users[id].credits = 0;
+            this.db.users[id] = { credits: 0 };
         }
 
         let { credits } = this.db.users[id];
@@ -70,10 +70,10 @@ export default class UserDB {
 
     public retrieve(id: string): UserDef {
         if (!this.db.users[id]) {
-            this.db.users[id].credits = 0;
+            this.db.users[id] = { credits: 0 };
         }
 
-        return this.db.users[id].credits;
+        return this.db.users[id];
     }
 
     public static async load() {

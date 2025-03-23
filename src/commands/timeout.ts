@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import UserDB from "../utils/db";
+import UserDB, { AuditType } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -28,9 +28,12 @@ export default class Timeout extends Command {
             return;
         }
 
-        (await (await ctx.guild()).members.fetch(target.id))
-            .timeout(600 * opt.payment, `${ctx.author.name} te ha aislado`);
+        const time = 600 * opt.payment;
 
+        (await (await ctx.guild()).members.fetch(target.id))
+            .timeout(time, `${ctx.author.name} te ha aislado`);
+
+        udb.register(ctx.author.id, target.id, AuditType.TIMEOUT, time, Date.now());
         udb.write();
         ctx.write({ content: `Aislaste a <@${target.id}>` });
     }

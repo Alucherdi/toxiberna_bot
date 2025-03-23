@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import UserDB from "../utils/db";
+import UserDB, { AuditType } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -30,11 +30,13 @@ export default class Mute extends Command {
         }
 
         let member = await (await (await ctx.guild()).members.fetch(target.id)).voice();
+        const time = 900_000 * opt.payment;
         await member.setMute(true);
         setTimeout(async () => {
             await member.setMute(false);
-        }, 900_000 * opt.payment);
+        }, time);
 
+        udb.register(ctx.author.id, target.id, AuditType.MUTE, time, Date.now());
         udb.write();
         ctx.write({ content: `Silenciaste a <@${target.id}>` });
     }

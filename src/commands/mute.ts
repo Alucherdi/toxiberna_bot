@@ -1,27 +1,30 @@
-import { Command, CommandContext, createUserOption, Declare, Options } from "seyfert";
+import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
 import UserDB from "../utils/db";
 
 const options = {
     user: createUserOption({
         description: 'Target',
         required: true
-    })
+    }),
+    payment: createIntegerOption({
+        description: 'Payment',
+        required: true
+    }),
 };
-
-const cost = 2;
 
 @Options(options)
 @Declare({
     name: "mute",
-    description: "Silencia a alguien en la llamada"
+    description: "Silencia a alguien (N * 15 min)"
 })
 export default class Mute extends Command {
     async run(ctx: CommandContext<typeof options>) {
         const udb = await UserDB.load()
 
-        const target = ctx.options.user;
+        const opt = ctx.options;
+        const target = opt.user;
 
-        if (!(await udb.spend(ctx.author.id, cost))) {
+        if (!udb.spend(ctx.author.id, opt.payment)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }
@@ -30,10 +33,10 @@ export default class Mute extends Command {
         await member.setMute(true);
         setTimeout(async () => {
             await member.setMute(false);
-        }, 1_800_000);
+        }, 900_000 * opt.payment);
 
-        await udb.write();
-        ctx.write({ content: `Silenciaste a <@${target.id}>, tu nuevo saldo es de: ${(await udb.retrieve(ctx.author.id))!.credits}` });
+        udb.write();
+        ctx.write({ content: `Silenciaste a <@${target.id}>` });
     }
 }
 

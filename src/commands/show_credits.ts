@@ -10,6 +10,6 @@ export default class Credits extends Command {
         const udb = await UserDB.load()
         const id = ctx.member?.id;
 
-        ctx.write({ content: `${await udb.retrieve(id)} credits` });
+        ctx.write({ content: `${udb.retrieve(id)} credits` });
     }
 }

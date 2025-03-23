@@ -29,13 +29,13 @@ export default class UserDB {
     }
 
     public modify(id: string, points: number) {
-        if (!this.db.users.has(id)) {
-            this.db.users.set(id, { credits: 0 });
+        if (!this.db.users[id]) {
+            this.db.users[id].credits = 0;
         }
 
-        let { credits } = this.db.users.get(id);
+        let { credits } = this.db.users[id];
         let operation = credits + points;
-        this.db.users.set(id, { credits: operation });
+        this.db.users[id] = operation;
 
         this.db.audit.push({
             type: AuditType.MODIFY,
@@ -48,13 +48,13 @@ export default class UserDB {
     public spend(id: string, points: number) {
         let result = false;
 
-        if (!this.db.users.has(id)) {
-            this.db.users.set(id, { credits: 0 });
+        if (!this.db.users[id]) {
+            this.db.users[id].credits = 0;
         }
 
-        let { credits } = this.db.users.get(id);
+        let { credits } = this.db.users[id];
         if (credits >= points) {
-            this.db.users.set(id, { credits: credits - points });
+            this.db.users[id].credits -= points;
             result = true;
         }
 
@@ -69,11 +69,11 @@ export default class UserDB {
     }
 
     public retrieve(id: string): UserDef {
-        if (!this.db.users.has(id)) {
-            this.db.users.set(id, { credits: 0 });
+        if (!this.db.users[id]) {
+            this.db.users[id].credits = 0;
         }
 
-        return this.db.users.get(id);
+        return this.db.users[id].credits;
     }
 
     public static async load() {
@@ -84,11 +84,10 @@ export default class UserDB {
                 audit: []
             });
         }
-        
         return new UserDB(await file.json());
     }
-    
-    public write() {
-        Bun.write(Bun.env.DB_PATH, JSON.stringify(this.db));
+
+    public async write() {
+        await Bun.write(Bun.env.DB_PATH, JSON.stringify(this.db));
     }
 }

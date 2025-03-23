@@ -25,7 +25,7 @@ export default class ChangeName extends Command {
         const udb = await UserDB.load()
         const target = ctx.options.user;
 
-        if (!(await udb.spend(ctx.author.id, cost))) {
+        if (!udb.spend(ctx.author.id, cost)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }

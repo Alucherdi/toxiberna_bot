@@ -3,8 +3,7 @@ type UserDef = {
 };
 
 enum AuditType {
-    ADD = 'ADD',
-    REMOVE = 'REMOVE',
+    MODIFY = 'MODIFY',
     SPEND = 'SPEND',
     FAILED = 'FAILED'
 };
@@ -39,7 +38,7 @@ export default class UserDB {
         this.db.users.set(id, { credits: operation });
 
         this.db.audit.push({
-            type: credits > operation ? AuditType.REMOVE : AuditType.ADD,
+            type: AuditType.MODIFY,
             from: id,
             amount: points,
             timestamp: Date.now()

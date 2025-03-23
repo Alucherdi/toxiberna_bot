@@ -1,6 +1,4 @@
 import "../env.declaration";
-
-// https://docs.seyfert.dev/getting-started/declare-module
 import { Client, type ParseClient } from "seyfert";
 
 const client = new Client();

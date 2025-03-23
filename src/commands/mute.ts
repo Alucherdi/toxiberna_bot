@@ -1,26 +1,21 @@
-import { Command, CommandContext, createStringOption, createUserOption, Declare, Options } from "seyfert";
+import { Command, CommandContext, createUserOption, Declare, Options } from "seyfert";
 import { load, write } from "../utils/db";
 
 const options = {
     user: createUserOption({
         description: 'Target',
         required: true
-    }),
-
-    nickname: createStringOption({
-        description: 'Nuevo nombre',
-        required: true
-    }),
+    })
 };
 
-const cost = 1;
+const cost = 2;
 
 @Options(options)
 @Declare({
-    name: "changename",
-    description: "Cambiale el nombre a algún culero"
+    name: "mute",
+    description: "Silencia a alguien en la llamada"
 })
-export default class ChangeName extends Command {
+export default class Mute extends Command {
     async run(ctx: CommandContext<typeof options>) {
         const db = await load();
         const dbUser = db[ctx.author.id];
@@ -38,13 +33,15 @@ export default class ChangeName extends Command {
         }
 
         dbUser.credits -= cost;
-        await (await ctx.guild()).members.edit(
-            target.id, { nick: ctx.options.nickname }, 'Por mis huevos'
-        );
+
+        let member = await (await (await ctx.guild()).members.fetch(target.id)).voice();
+        await member.setMute(true);
+        setTimeout(async () => {
+            await member.setMute(false);
+        }, 1_800_000);
 
         await write(db);
-        ctx.write({ content: `Le cambiaste el nombre a <@${target.id}>, tu nuevo saldo es de: ${db[ctx.author.id].credits}.` });
+        ctx.write({ content: `Silenciaste a <@${target.id}>, tu nuevo saldo es de: ${db[ctx.author.id].credits}.` });
     }
 }
-
 

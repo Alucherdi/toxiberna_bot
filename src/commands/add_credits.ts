@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import db from './db.json';
+import { load, write } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -20,9 +20,10 @@ const options = {
 })
 export default class Credits extends Command {
     async run(ctx: CommandContext<typeof options>) {
+        const db = await load();
         let roles = (await ctx.member.roles.list()).map(v => v.name);
         if (!roles.includes('Admin')) {
-            ctx.write({ content: 'A donde mija' });
+            ctx.write({ content: 'A ver hijo de tu putísima madre tu no eres admin saquese a la verga' });
             return;
         }
 
@@ -30,8 +31,8 @@ export default class Credits extends Command {
         if (!db[target]) db[target] = { credits: 0 };
         db[target].credits += ctx.options.credits;
 
-        Bun.write('./db.json', JSON.stringify(db));
-        ctx.write({ content: `Créditos de ${ctx.options.user.name}: ${db[target].credits}` });
+        await write(db);
+        ctx.write({ content: `Créditos de <@${ctx.options.user.id}>: ${db[target].credits}` });
     }
 }
 

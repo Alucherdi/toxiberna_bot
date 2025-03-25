@@ -10,6 +10,7 @@ export enum AuditType {
     TIMEOUT = 'TIMEOUT',
     MUTE = 'MUTE',
     RENAME = 'RENAME',
+    SLOTMACHINE = 'SLOTMACHINE',
 };
 
 type AuditDef = {

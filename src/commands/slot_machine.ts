@@ -79,7 +79,7 @@ export default class SlotMachine extends Command {
         
         setTimeout(async () => {
             let win = results.every(v => v === results[0]);
-            let credits = results[0];
+            let credits = results[0] + 1;
 
             if(win) {
                 await udb.modify(ctx.author.id, credits);

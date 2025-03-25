@@ -6,22 +6,23 @@ const cost = 1;
 const slots = 3;
 
 const sheet = new SpriteSheet(
-    "assets/Items.png", 17, 14, 5, 1
+    "assets/Items.png", 17, 14, 6, 1
 );
 
-function drawSlot(g: Graphics, img: SpriteSheet, x: number, y: number, p: number) {    
+function drawSlot(g: Graphics, img: SpriteSheet, x: number, y: number, p: number) {
     let v = 0;
     let m = img.height * img.cols;
     let s = Math.floor(p * m);
     let idx = Math.floor(s / img.height) % img.cols;
+
+    let r = Math.random() * 255;
+    let gn = Math.random() * 255;
+    let b = Math.random() * 255;
+
     for(let i = 0; i < 2; i++) {
         v = idx + (idx < img.cols ? 0 : 1);
         g.image_ex(x + 1, y + -img.height * i + (s % img.height) + 1, 0, img.height * v, img.width, img.height, img.image());
     }
-    
-    let r = Math.random() * 255;
-    let gn = Math.random() * 255;
-    let b = Math.random() * 255;
 
     g.rect(x, y, img.width + 2, img.height + 2, r, gn, b, false);
     return idx;
@@ -48,7 +49,7 @@ export default class SlotMachine extends Command {
         const rows = Array(slots).fill(0).map((_, i) => i * (Math.round(Math.random() * 25) / 100.0));
         const results = Array(rows.length).fill(0);
         const base = range(20, 30);
-        // TODO: This is a little bit unfair, we don't fully know if the user is going to win or not - Help
+        // TODO: This could be a little bit unfair, we don't fully know if the user is going to win or not - Help
         const target = rows.map((_, i) => base + range(0, 10) + (i * 10));
         const frames = [];
 
@@ -76,20 +77,25 @@ export default class SlotMachine extends Command {
 
         const result = await Graphics.gif(frames, 2, 4);
         await ctx.editOrReply({ content: "¡Buena suerte!", files: [{ filename: "slot.gif", data: result }] });
-        
+
         setTimeout(async () => {
             let win = results.every(v => v === results[0]);
-            let credits = results[0] + 1;
+            let credits = [2, 3, 5, 7, 10, -5][results[0]];
 
             if(win) {
                 await udb.modify(ctx.author.id, credits);
                 await udb.register(ctx.author.id, ctx.author.id, AuditType.SLOTMACHINE, credits, Date.now());
-                await udb.write();
 
-                ctx.editResponse({ content: `¡Has ganado ${credits} creditos`, attachments: []});
+                if(credits < 0) {
+                    ctx.editResponse({ content: `:skull_crossbones: ¡Has perdido ${Math.abs(credits)} creditos, suerte la próxima vez!`, attachments: []});
+                } else {
+                    ctx.editResponse({ content: `¡Has ganado ${credits} creditos`, attachments: []});
+                }
             } else {
                 ctx.editResponse({ content: "¡Has perdido!", attachments: []});
             }
+
+            await udb.write();
         }, 2100 * rows.length);
     }
 }

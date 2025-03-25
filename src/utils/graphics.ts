@@ -115,3 +115,29 @@ export class Asset {
         };
     }
 }
+
+export class SpriteSheet {
+    private path: string;
+    public width: number;
+    public height: number;
+    public cols: number;
+    public rows: number;
+
+    private data: Image;
+
+    constructor(path: string, width: number, height: number, cols: number, rows: number = 1) {
+        this.path = path;
+        this.width = width;
+        this.height = height;
+        this.cols = cols;
+        this.rows = rows;
+    }
+
+    async load() {
+        this.data = await Asset.load(this.path);
+    }
+
+    public image() {
+        return this.data;
+    }
+}

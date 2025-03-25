@@ -42,22 +42,21 @@ export class Graphics {
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
-        // We only support RGB images
         this.buffer = new Uint8Array(width * height * 3);
     }
 
     public pixel(x: number, y: number, r: number, g: number, b: number) {
         let i = (y * this.width + x) * 3;
         this.buffer[i] = r;
-        this.buffer[i+1] = g;
-        this.buffer[i+2] = b;
+        this.buffer[i + 1] = g;
+        this.buffer[i + 2] = b;
     }
 
     public clear(r: number, g: number, b: number) {
         for (let i = 0; i < this.buffer.length; i += 3) {
             this.buffer[i] = r;
-            this.buffer[i+1] = g;
-            this.buffer[i+2] = b;
+            this.buffer[i + 1] = g;
+            this.buffer[i + 2] = b;
         }
     }
 

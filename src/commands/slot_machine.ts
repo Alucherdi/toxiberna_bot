@@ -1,6 +1,6 @@
 import { Command, CommandContext, Declare } from "seyfert";
 import UserDB, { AuditType } from "../utils/db";
-import { Asset, Graphics, SpriteSheet, type Image } from "../utils/graphics";
+import { Graphics, SpriteSheet } from "../utils/graphics";
 
 const cost = 1;
 const slots = 3;
@@ -45,7 +45,7 @@ export default class SlotMachine extends Command {
         }
 
         await sheet.load();
-        const rows = Array(slots).fill(0).map((_, i) => i * 0.25);
+        const rows = Array(slots).fill(0).map((_, i) => i * (Math.round(Math.random() * 25) / 100.0));
         const results = Array(rows.length).fill(0);
         const base = range(20, 30);
         // TODO: This is a little bit unfair, we don't fully know if the user is going to win or not - Help
@@ -68,13 +68,13 @@ export default class SlotMachine extends Command {
             }
         }
 
-        for(let i = 0; i < 20 * rows.length; i++) {
+        for(let i = 0; i < 30 * rows.length; i++) {
             const ctx = new Graphics((sheet.width + 2) * rows.length, (sheet.height + 2));
             await draw(ctx, i);
             frames.push(await ctx.frame());
         }
 
-        const result = await Graphics.gif(frames, 2, 4);    
+        const result = await Graphics.gif(frames, 2, 4);
         await ctx.editOrReply({ content: "¡Buena suerte!", files: [{ filename: "slot.gif", data: result }] });
         
         setTimeout(async () => {

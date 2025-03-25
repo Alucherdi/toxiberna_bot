@@ -1,6 +1,6 @@
 import fs from "fs";
 import sharp from "sharp";
-import { createGif, Gif } from "sharp-gif2";
+import { createGif } from "sharp-gif2";
 
 export type Image = {
     width: number;
@@ -112,16 +112,17 @@ export class Graphics {
     }
 
     public static async gif(frames: any[], delay: number, scale: number = 1): Promise<Buffer> {
-        let a = await createGif({
+        let gif = await createGif({
             delay,
             repeat: 0
         }).addFrame(frames).toSharp();
-        let metadata = await frames[0].metadata();
+
         if(scale > 1) {
-            a = a.resize(metadata.width! * scale, metadata.height! * scale, { kernel: "nearest" });
+            let metadata = await frames[0].metadata();
+            gif = gif.resize(metadata.width! * scale, metadata.height! * scale, { kernel: "nearest" });
         }
 
-        return await a.toBuffer();
+        return await gif.toBuffer();
     }
 }
 

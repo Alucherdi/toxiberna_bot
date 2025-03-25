@@ -1,11 +1,15 @@
-type UserDef = {
+export type UserDef = {
     credits: number;
 };
 
-enum AuditType {
+export enum AuditType {
     MODIFY = 'MODIFY',
     SPEND = 'SPEND',
-    FAILED = 'FAILED'
+    FAILED = 'FAILED',
+    TRANSFER = 'TRANSFER',
+    TIMEOUT = 'TIMEOUT',
+    MUTE = 'MUTE',
+    RENAME = 'RENAME',
 };
 
 type AuditDef = {
@@ -14,6 +18,7 @@ type AuditDef = {
     from: string;
     amount: number;
     timestamp: number;
+    metadata?: any;
 };
 
 type DatabaseDef = {
@@ -58,14 +63,26 @@ export default class UserDB {
             result = true;
         }
 
-        this.db.audit.push({
-            type: result ? AuditType.SPEND : AuditType.FAILED,
-            from: id,
-            amount: points,
-            timestamp: Date.now()
-        });
+        if(!result) {
+            this.db.audit.push({
+                type: AuditType.FAILED,
+                from: id,
+                amount: points,
+                timestamp: Date.now()
+            });
+        }
 
         return result;
+    }
+
+    public register(from: string, to: string, type: AuditType, amount: number, timestamp: number) {
+        this.db.audit.push({
+            type,
+            from,
+            to,
+            amount,
+            timestamp
+        });
     }
 
     public retrieve(id: string): UserDef {
@@ -74,6 +91,10 @@ export default class UserDB {
         }
 
         return this.db.users[id];
+    }
+
+    public audit() {
+        return this.db.audit;
     }
 
     public static async load() {

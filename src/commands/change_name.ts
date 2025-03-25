@@ -1,5 +1,5 @@
 import { Command, CommandContext, createStringOption, createUserOption, Declare, Options } from "seyfert";
-import UserDB from "../utils/db";
+import UserDB, { AuditType } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -34,6 +34,7 @@ export default class ChangeName extends Command {
             target.id, { nick: ctx.options.nickname }, 'Por mis huevos'
         );
 
+        udb.register(ctx.author.id, target.id, AuditType.RENAME, 0, Date.now());
         await udb.write();
         ctx.write({ content: `Le cambiaste el nombre a <@${target.id}>, tu nuevo saldo es de: ${(await udb.retrieve(ctx.author.id))!.credits}` });
     }

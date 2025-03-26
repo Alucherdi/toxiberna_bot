@@ -31,7 +31,7 @@ function drawSlot(g: Graphics, img: SpriteSheet, x: number, y: number, p: number
     return idx;
 }
 
-function range(min: number, max: number) {
+function random(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
@@ -51,9 +51,9 @@ export default class SlotMachine extends Command {
         await sheet.load();
         const rows = Array(slots).fill(0).map((_, i) => i * (Math.round(Math.random() * (100 / slots)) / 100.0));
         const results = Array(rows.length).fill(0);
-        const winner = range(0, sheet.cols - 1);
+        const winner = random(0, sheet.cols - 1);
         const target = rows.map((_, i) => {
-            return Math.random() <= probability ? winner : Math.floor(range(1, 5));
+            return Math.random() <= probability ? winner : random(0, sheet.cols - 1);
         });
         const frames = [];
 

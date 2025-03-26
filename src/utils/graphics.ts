@@ -101,6 +101,23 @@ export class Graphics {
         }
     }
 
+    public ellipse(x: number, y: number, radius: number, red: number, green: number, blue: number, filled: boolean = true) {
+        let r2 = radius * radius;
+        for (let i = -radius; i <= radius; ++i) {
+            for (let j = -radius; j <= radius; ++j) {
+                if(filled) {
+                    if (i * i + j * j <= r2) {
+                        this.pixel(x + i, y + j, red, green, blue);
+                    }
+                } else {
+                    if (i * i + j * j <= r2 && i * i + j * j >= r2 - radius) {
+                        this.pixel(x + i, y + j, red, green, blue);
+                    }
+                }
+            }
+        }
+    }
+
     public frame() {
         return sharp(this.buffer, {
             raw: {

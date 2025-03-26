@@ -4,6 +4,8 @@ import { Graphics, SpriteSheet } from "../utils/graphics";
 
 const cost = 1;
 const slots = 3;
+const duration = 25; // Frames
+const probability = 0.5; // 0.0 - 1.0
 
 const sheet = new SpriteSheet(
     "assets/Items.png", 17, 14, 6, 1
@@ -46,11 +48,13 @@ export default class SlotMachine extends Command {
         }
 
         await sheet.load();
-        const rows = Array(slots).fill(0).map((_, i) => i * (Math.round(Math.random() * 25) / 100.0));
+        const rows = Array(slots).fill(0).map((_, i) => i * (Math.round(Math.random() * (100 / slots)) / 100.0));
         const results = Array(rows.length).fill(0);
-        const base = range(20, 30);
-        // TODO: This could be a little bit unfair, we don't fully know if the user is going to win or not - Help
-        const target = rows.map((_, i) => base + range(0, 10) + (i * 10));
+        const winner = range(0, slots - 1);
+        // TODO: Probability should be per slot or per game?
+        const target = rows.map((_, i) => {
+            return Math.random() <= probability ? winner : Math.floor(range(1, 5));
+        });
         const frames = [];
 
         await ctx.deferReply();
@@ -61,7 +65,7 @@ export default class SlotMachine extends Command {
             }
 
             for(let i = 0; i < rows.length; i++) {
-                if(frame < target[i]) {
+                if(frame < duration + (i * 10) || results[i] != target[i]){
                     rows[i] += 0.1;
                 } else {
                     rows[i] = Math.round(rows[i] * sheet.cols) / sheet.cols;
@@ -96,6 +100,6 @@ export default class SlotMachine extends Command {
             }
 
             await udb.write();
-        }, 2100 * rows.length);
+        }, 2200 * rows.length);
     }
 }

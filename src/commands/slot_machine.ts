@@ -6,6 +6,7 @@ const cost = 1;
 const slots = 3;
 const duration = 25; // Frames
 const probability = 0.5; // 0.0 - 1.0
+const prizes = [2, 3, 5, 7, 10, -5];
 
 const sheet = new SpriteSheet(
     "assets/Items.png", 17, 14, 6, 1
@@ -50,8 +51,7 @@ export default class SlotMachine extends Command {
         await sheet.load();
         const rows = Array(slots).fill(0).map((_, i) => i * (Math.round(Math.random() * (100 / slots)) / 100.0));
         const results = Array(rows.length).fill(0);
-        const winner = range(0, slots - 1);
-        // TODO: Probability should be per slot or per game?
+        const winner = range(0, sheet.cols - 1);
         const target = rows.map((_, i) => {
             return Math.random() <= probability ? winner : Math.floor(range(1, 5));
         });
@@ -84,7 +84,7 @@ export default class SlotMachine extends Command {
 
         setTimeout(async () => {
             let win = results.every(v => v === results[0]);
-            let credits = [2, 3, 5, 7, 10, -5][results[0]];
+            let credits = prizes[results[0]];
 
             if(win) {
                 await udb.modify(ctx.author.id, credits);

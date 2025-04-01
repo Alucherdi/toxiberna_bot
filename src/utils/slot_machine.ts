@@ -7,7 +7,7 @@ class SlotMachine {
     private targets: number[] = [];
     private duration = 25;
     private frames: Sharp[] = []; 
-    private sheet = new SpriteSheet('Items.png', 18, 14, 6, 1);
+    private sheet = new SpriteSheet('assets/Items.png', 18, 14, 6, 1);
     private rows: number[] = Array(3).fill(0).map((_, i) => i * (Math.round(Math.random() * (100 / 3)) / 100.0));
     private results: number[] = Array(3).fill(0);
     private choosen: number = -1;

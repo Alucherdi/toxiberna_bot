@@ -1,4 +1,3 @@
-import fs from "fs";
 import sharp from "sharp";
 import { createGif } from "sharp-gif2";
 
@@ -69,7 +68,7 @@ export class Graphics {
         }
     }
 
-    public image_ex(x: number, y: number, u: number, v: number, width: number, height: number, image: Image) {
+    public imageEx(x: number, y: number, u: number, v: number, width: number, height: number, image: Image) {
         for (let i = 0; i < height; i++) {
             for (let j = 0; j < width; j++) {
                 let k = (v + i) * image.width + u + j;
@@ -144,9 +143,11 @@ export class Graphics {
 }
 
 export class Asset {
-    static async load(file: string): Promise<Image> {
+    static async load(path: string): Promise<Image> {
         // load image as rgba
-        const image = await sharp(fs.readFileSync(file));
+        const file = Bun.file(path);
+        const image = sharp(await file.bytes());
+
         const metadata = await image.metadata();
         const data = await image.raw().ensureAlpha().toBuffer();
         return {

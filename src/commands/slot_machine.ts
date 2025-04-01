@@ -34,12 +34,12 @@ export default class SlotMachineC extends Command {
                 udb.register(ctx.author.id, ctx.author.id, AuditType.SLOTMACHINE, credits, Date.now());
 
                 if(credits < 0) {
-                    ctx.editResponse({ content: `:skull_crossbones: ¡Has perdido ${Math.abs(credits)} creditos, suerte la próxima vez!`, attachments: []});
+                    await ctx.editResponse({ content: `:skull_crossbones: ¡Has perdido ${Math.abs(credits)} creditos, suerte la próxima vez!`, attachments: []});
                 } else {
-                    ctx.editResponse({ content: `¡Has ganado ${credits} creditos`, attachments: []});
+                    await ctx.editResponse({ content: `¡Has ganado ${credits} creditos`, attachments: []});
                 }
             } else {
-                ctx.editResponse({ content: "¡Has perdido!", attachments: []});
+                await ctx.editResponse({ content: "¡Has perdido!", attachments: []});
             }
 
             await udb.write();

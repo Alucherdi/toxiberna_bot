@@ -13,7 +13,7 @@ const options = {
     name: "audit",
     description: "Audita a un usuario corrupto alv"
 })
-export default class Credits extends Command {
+export default class Audit extends Command {
     async run(ctx: CommandContext<typeof options>) {
         const udb = await UserDB.load()
         let roles = (await ctx.member.roles.list()).map(v => v.name);

@@ -30,7 +30,7 @@ export default class SlotMachineC extends Command {
 
             if (win) {
                 let credits = prizes[choosen];
-                udb.modify('system', ctx.author.id, credits);
+                udb.modify(ctx.author.id,'system', credits);
                 udb.register(ctx.author.id, ctx.author.id, AuditType.SLOTMACHINE, credits, Date.now());
 
                 if(credits < 0) {

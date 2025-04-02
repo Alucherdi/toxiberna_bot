@@ -31,7 +31,7 @@ export default class Credits extends Command {
             return;
         }
 
-        let output = `History from @<${target}>:\n`;
+        let output = `History from <@${target}>:\n`;
         for (let i = 0; i < formatted.length; i++) {
             const { type, to, amount, timestamp } = formatted[i];
             let date = new Date(timestamp).toLocaleString();

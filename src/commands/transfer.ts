@@ -34,7 +34,7 @@ export default class Transfer extends Command {
         }
 
         let target = ctx.options.user.id;
-        udb.modify(target, credits);
+        udb.modify(target, ctx.author.id, credits);
 
         await udb.write();
         ctx.write({ content: `Transferiste ${credits} créditos a <@${ctx.options.user.id}>, tu nuevo saldo es de: ${(await udb.retrieve(ctx.author.id))!.credits}` });

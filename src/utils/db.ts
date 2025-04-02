@@ -34,18 +34,19 @@ export default class UserDB {
         this.db = database;
     }
 
-    public modify(id: string, points: number) {
-        if (!this.db.users[id]) {
-            this.db.users[id] = { credits: 0 };
+    public modify(to: string, from: string, points: number) {
+        if (!this.db.users[to]) {
+            this.db.users[to] = { credits: 0 };
         }
 
-        let { credits } = this.db.users[id];
+        let { credits } = this.db.users[to];
         let operation = credits + points;
-        this.db.users[id].credits = operation;
+        this.db.users[to].credits = operation;
 
         this.db.audit.push({
             type: AuditType.MODIFY,
-            from: id,
+            to: to,
+            from: from,
             amount: points,
             timestamp: Date.now()
         });

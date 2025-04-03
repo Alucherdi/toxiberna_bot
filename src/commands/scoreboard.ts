@@ -1,5 +1,5 @@
-import { Command, CommandContext, createStringOption, Declare, GuildRole, Options } from "seyfert";
-import UserDB, { AuditType } from "../utils/db";
+import { Command, CommandContext, createStringOption, Declare, Options } from "seyfert";
+import { AuditType, DB } from "../utils/db";
 
 const filters = [ AuditType.MUTE, AuditType.TIMEOUT, AuditType.RENAME ];
 
@@ -32,17 +32,17 @@ const names = {
 })
 export default class Scoreboard extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const udb = await UserDB.load()
-        const audit = udb.audit();
+        const audit = DB.getBinnacle();
+
         const filtered = audit.filter(({ type }) => filters.includes(type));
         const query = ctx.options.type as unknown as AuditType;
 
-        const data = filtered.reduce<Record<string, number>>((acc, { to, type, amount }) => {
+        const data = filtered.reduce<Record<string, number>>((acc, { recipient, type, amount }) => {
             if (type !== query) {
                 return acc;
             }
 
-            acc[to] = (acc[to] || 0) + (type === AuditType.RENAME ? 1 : amount);
+            acc[recipient] = (acc[recipient] || 0) + (type === AuditType.RENAME ? 1 : amount);
             return acc;
         }, {});
 

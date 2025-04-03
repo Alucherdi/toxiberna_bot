@@ -1,6 +1,4 @@
-export type UserDef = {
-    credits: number;
-};
+import { Database } from "bun:sqlite";
 
 export enum AuditType {
     MODIFY = 'MODIFY',
@@ -13,103 +11,104 @@ export enum AuditType {
     SLOTMACHINE = 'SLOTMACHINE',
 };
 
-type AuditDef = {
+class Audit {
     type: AuditType;
-    to?: string;
-    from: string;
+    recipient?: string;
+    user: number;
     amount: number;
     timestamp: number;
     metadata?: any;
 };
 
-type DatabaseDef = {
-    users: { [key: string]: UserDef },
-    audit: AuditDef[];
+export function report(data: Audit) {
+    const db = new Database(Bun.env.DB_PATH);
+    db.query(`
+        INSERT INTO audit VALUES(
+            ${data.type},
+            ${data.recipient ?? 'NULL'},
+            ${data.user},
+            ${data.amount},
+            ${data.timestamp}
+        );
+    `).run();
 }
 
-export default class UserDB {
-    private db: DatabaseDef;
+export class User {
+    id: number;
+    credits: number;
+    db: Database;
 
-    constructor(database: any) {
-        this.db = database;
+    constructor(id: number, credits: number) {
+        this.id = id;
+        this.credits = credits;
     }
 
-    public modify(id: string, points: number) {
-        if (!this.db.users[id]) {
-            this.db.users[id] = { credits: 0 };
-        }
+    public modify(amount: number) {
+        this.credits += amount;
+        this.write();
 
-        let { credits } = this.db.users[id];
-        let operation = credits + points;
-        this.db.users[id].credits = operation;
-
-        this.db.audit.push({
+        report({
+            amount,
             type: AuditType.MODIFY,
-            from: id,
-            amount: points,
+            user: this.id,
             timestamp: Date.now()
         });
+
+        return true;
     }
 
-    public spend(id: string, points: number) {
-        let result = false;
-
-        if (!this.db.users[id]) {
-            this.db.users[id] = { credits: 0 };
-        }
-
-        let { credits } = this.db.users[id];
-        if (credits >= points) {
-            this.db.users[id].credits -= points;
-            result = true;
-        }
-
-        if(!result) {
-            this.db.audit.push({
+    public spend(amount: number) {
+        if ((this.credits - amount) < 0) {
+            report({
+                amount,
                 type: AuditType.FAILED,
-                from: id,
-                amount: points,
+                user: this.id,
                 timestamp: Date.now()
             });
+
+            return false;
         }
 
-        return result;
+        return this.modify(-amount);
     }
 
-    public register(from: string, to: string, type: AuditType, amount: number, timestamp: number) {
-        this.db.audit.push({
-            type,
-            from,
-            to,
-            amount,
-            timestamp
-        });
+    private write() {
+        this.db.query(`
+            UPDATE users
+            SET credits = ${this.credits}
+            WHERE id = ${this.id}
+        `).run();
     }
+}
 
-    public retrieve(id: string): UserDef {
-        if (!this.db.users[id]) {
-            this.db.users[id] = { credits: 0 };
+export class DB {
+    public static getUser(id: number): User {
+        const db = new Database(Bun.env.DB_PATH);
+        let user = db
+            .query(`SELECT * FROM users WHERE id = ${id}`)
+            .as(User)
+            .get();
+
+        if (!user) {
+            db.query(`INSERT INTO users VALUES(${id}, 0)`)
+            .as(User)
+            .get();
+
+            user = new User(id, 0);
         }
 
-        return this.db.users[id];
+        user.db = db;
+
+        return user;
     }
 
-    public audit() {
-        return this.db.audit;
-    }
+    public static getBinnacle(): Audit[] {
+        const db = new Database(Bun.env.DB_PATH);
+        const binnacle = db
+            .query(`SELECT * FROM audit`)
+            .as(Audit)
+            .all();
 
-    public static async load() {
-        const file = Bun.file(Bun.env.DB_PATH);
-        if (!file.exists()) {
-            return new UserDB({
-                users: {},
-                audit: []
-            });
-        }
-        return new UserDB(await file.json());
-    }
-
-    public async write() {
-        await Bun.write(Bun.env.DB_PATH, JSON.stringify(this.db));
+        return binnacle;
     }
 }

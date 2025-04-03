@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import UserDB from "../utils/db";
+import { DB } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -20,7 +20,7 @@ const options = {
 })
 export default class Transfer extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const udb = await UserDB.load()
+        const user = DB.getUser(+ctx.author.id);
         const { credits } = ctx.options;
 
         if (credits <= 0) {
@@ -28,16 +28,15 @@ export default class Transfer extends Command {
             return;
         }
 
-        if (!udb.spend(ctx.author.id, credits)) {
+        if (!user.spend(credits)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }
 
-        let target = ctx.options.user.id;
-        udb.modify(target, credits);
+        const target = DB.getUser(+ctx.options.user.id);
+        target.modify(credits);
 
-        await udb.write();
-        ctx.write({ content: `Transferiste ${credits} créditos a <@${ctx.options.user.id}>, tu nuevo saldo es de: ${(await udb.retrieve(ctx.author.id))!.credits}` });
+        ctx.write({ content: `Transferiste ${credits} créditos a <@${ctx.options.user.id}>, tu nuevo saldo es de: ${user.credits}` });
     }
 }
 

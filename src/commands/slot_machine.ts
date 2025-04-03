@@ -1,6 +1,6 @@
 import { Command, CommandContext, Declare } from "seyfert";
-import UserDB, { AuditType } from "../utils/db";
 import SlotMachine from "../utils/slot_machine";
+import { AuditType, DB, report } from "../utils/db";
 
 const cost = 1;
 const intentions = [1, 1, 1, 1, 1, 4, 10];
@@ -12,9 +12,9 @@ const prizes = [2, 3, 5, 7, 10, -5];
 })
 export default class SlotMachineC extends Command {
     async run(ctx: CommandContext) {
-        const udb = await UserDB.load()
+        const user = DB.getUser(+ctx.author.id);
 
-        if (!udb.spend(ctx.author.id, cost)) {
+        if (!user.spend(cost)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }
@@ -30,8 +30,15 @@ export default class SlotMachineC extends Command {
 
             if (win) {
                 let credits = prizes[choosen];
-                udb.modify(ctx.author.id, credits);
-                udb.register(ctx.author.id, ctx.author.id, AuditType.SLOTMACHINE, credits, Date.now());
+                user.modify(credits);
+
+                report({
+                    type: AuditType.SLOTMACHINE,
+                    user: +ctx.author.id,
+                    recipient: ctx.author.id,
+                    amount: credits,
+                    timestamp: Date.now()
+                });
 
                 if(credits < 0) {
                     await ctx.editResponse({ content: `:skull_crossbones: ¡Has perdido ${Math.abs(credits)} creditos, suerte la próxima vez!`, attachments: []});
@@ -41,8 +48,6 @@ export default class SlotMachineC extends Command {
             } else {
                 await ctx.editResponse({ content: "¡Has perdido!", attachments: []});
             }
-
-            await udb.write();
         }, 2200 * 3);
     }
 }

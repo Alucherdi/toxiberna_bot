@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import UserDB, { AuditType } from "../utils/db";
+import { AuditType, DB, report } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -19,11 +19,11 @@ const options = {
 })
 export default class Timeout extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const udb = await UserDB.load()
+        const user = DB.getUser(+ctx.author.id);
         const opt = ctx.options;
         const target = opt.user;
 
-        if (!udb.spend(ctx.author.id, opt.payment)) {
+        if (!user.spend(opt.payment)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }
@@ -33,8 +33,14 @@ export default class Timeout extends Command {
         (await (await ctx.guild()).members.fetch(target.id))
             .timeout(time, `${ctx.author.name} te ha aislado`);
 
-        udb.register(ctx.author.id, target.id, AuditType.TIMEOUT, time, Date.now());
-        udb.write();
+        report({
+            type: AuditType.TIMEOUT,
+            user: +ctx.author.id,
+            recipient: target.id,
+            amount: time,
+            timestamp: Date.now()
+        });
+
         ctx.write({ content: `Aislaste a <@${target.id}>` });
     }
 }

@@ -86,7 +86,7 @@ export class Graphics {
                 this.pixel(x + i, y, r, g, b);
                 this.pixel(x + i, y + height - 1, r, g, b);
             }
-        
+
             for (let i = 0; i < height; ++i) {
                 this.pixel(x, y + i, r, g, b);
                 this.pixel(x + width - 1, y + i, r, g, b);

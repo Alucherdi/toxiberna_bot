@@ -20,7 +20,7 @@ const options = {
 })
 export default class Credits extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const user = DB.getUser(+ctx.options.user);
+        const user = DB.getUser(ctx.options.user.id);
 
         let roles = (await ctx.member.roles.list()).map(v => v.name);
         if (!roles.includes('Admin')) {

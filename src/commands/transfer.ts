@@ -20,7 +20,7 @@ const options = {
 })
 export default class Transfer extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const user = DB.getUser(+ctx.author.id);
+        const user = DB.getUser(ctx.author.id);
         const { credits } = ctx.options;
 
         if (credits <= 0) {
@@ -33,7 +33,7 @@ export default class Transfer extends Command {
             return;
         }
 
-        const target = DB.getUser(+ctx.options.user.id);
+        const target = DB.getUser(ctx.options.user.id);
         target.modify(credits);
 
         ctx.write({ content: `Transferiste ${credits} créditos a <@${ctx.options.user.id}>, tu nuevo saldo es de: ${user.credits}` });

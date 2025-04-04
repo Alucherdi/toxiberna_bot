@@ -22,7 +22,7 @@ const cost = 1;
 })
 export default class ChangeName extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const user = DB.getUser(+ctx.author.id);
+        const user = DB.getUser(ctx.author.id);
         const target = ctx.options.user;
 
         if (!user.spend(cost)) {
@@ -36,7 +36,7 @@ export default class ChangeName extends Command {
 
         report({
             type: AuditType.RENAME,
-            user: +ctx.author.id,
+            user: ctx.author.id,
             recipient: target.id,
             amount: cost,
             timestamp: Date.now()

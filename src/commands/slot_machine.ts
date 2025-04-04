@@ -12,7 +12,7 @@ const prizes = [2, 3, 5, 7, 10, -5];
 })
 export default class SlotMachineC extends Command {
     async run(ctx: CommandContext) {
-        const user = DB.getUser(+ctx.author.id);
+        const user = DB.getUser(ctx.author.id);
 
         if (!user.spend(cost)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
@@ -34,7 +34,7 @@ export default class SlotMachineC extends Command {
 
                 report({
                     type: AuditType.SLOTMACHINE,
-                    user: +ctx.author.id,
+                    user: ctx.author.id,
                     recipient: ctx.author.id,
                     amount: credits,
                     timestamp: Date.now()

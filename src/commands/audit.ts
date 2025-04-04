@@ -25,7 +25,7 @@ export default class Credits extends Command {
 
         let target = ctx.options.user.id;
         let formatted = audit
-            .filter(v => v.user == +target)
+            .filter(v => v.user == target)
 
         if (formatted.length == 0) {
             ctx.write({ content: `No hay datos para mostrar` });

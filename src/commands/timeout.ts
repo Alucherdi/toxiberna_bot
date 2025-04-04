@@ -19,7 +19,7 @@ const options = {
 })
 export default class Timeout extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const user = DB.getUser(+ctx.author.id);
+        const user = DB.getUser(ctx.author.id);
         const opt = ctx.options;
         const target = opt.user;
 
@@ -35,7 +35,7 @@ export default class Timeout extends Command {
 
         report({
             type: AuditType.TIMEOUT,
-            user: +ctx.author.id,
+            user: ctx.author.id,
             recipient: target.id,
             amount: time,
             timestamp: Date.now()

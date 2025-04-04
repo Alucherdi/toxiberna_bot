@@ -14,7 +14,7 @@ export enum AuditType {
 class Audit {
     type: AuditType;
     recipient?: string;
-    user: number;
+    user: string;
     amount: number;
     timestamp: number;
     metadata?: any;
@@ -22,11 +22,16 @@ class Audit {
 
 export function report(data: Audit) {
     const db = new Database(Bun.env.DB_PATH);
+
+    const recipient = data.recipient ?
+        "'" + data.recipient + "'" :
+        'NULL';
+
     db.query(`
-        INSERT INTO audit VALUES(
-            ${data.type},
-            ${data.recipient ?? 'NULL'},
-            ${data.user},
+        INSERT INTO audit(type, recipient, user, amount, timestamp) VALUES(
+            '${data.type}',
+            ${recipient},
+            '${data.user}',
             ${data.amount},
             ${data.timestamp}
         );
@@ -34,11 +39,11 @@ export function report(data: Audit) {
 }
 
 export class User {
-    id: number;
+    id: string;
     credits: number;
     db: Database;
 
-    constructor(id: number, credits: number) {
+    constructor(id: string, credits: number) {
         this.id = id;
         this.credits = credits;
     }
@@ -76,21 +81,21 @@ export class User {
         this.db.query(`
             UPDATE users
             SET credits = ${this.credits}
-            WHERE id = ${this.id}
+            WHERE id = '${this.id}'
         `).run();
     }
 }
 
 export class DB {
-    public static getUser(id: number): User {
+    public static getUser(id: string): User {
         const db = new Database(Bun.env.DB_PATH);
         let user = db
-            .query(`SELECT * FROM users WHERE id = ${id}`)
+            .query(`SELECT * FROM users WHERE id = '${id}'`)
             .as(User)
             .get();
 
         if (!user) {
-            db.query(`INSERT INTO users VALUES(${id}, 0)`)
+            db.query(`INSERT INTO users VALUES('${id}', 0)`)
             .as(User)
             .get();
 

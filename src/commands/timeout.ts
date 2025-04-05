@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import { AuditType, DB, report } from "../utils/db";
+import { AuditType, Binnacle, DB } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -19,8 +19,13 @@ const options = {
 })
 export default class Timeout extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const user = DB.getUser(ctx.author.id);
         const opt = ctx.options;
+        if (opt.payment <= 0) {
+            ctx.write({ content: 'Eres pendejo o te haces' });
+            return;
+        }
+
+        const user = DB.getUser(ctx.author.id);
         const target = opt.user;
 
         if (!user.spend(opt.payment)) {
@@ -33,7 +38,7 @@ export default class Timeout extends Command {
         (await (await ctx.guild()).members.fetch(target.id))
             .timeout(time, `${ctx.author.name} te ha aislado`);
 
-        report({
+        Binnacle.report({
             type: AuditType.TIMEOUT,
             user: ctx.author.id,
             recipient: target.id,

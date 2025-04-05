@@ -1,5 +1,5 @@
 import { Command, CommandContext, createIntegerOption, createUserOption, Declare, Options } from "seyfert";
-import { AuditType, DB, report } from "../utils/db";
+import { AuditType, Binnacle, DB } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -19,10 +19,15 @@ const options = {
 })
 export default class Mute extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const user = DB.getUser(ctx.author.id);
-
         const opt = ctx.options;
+        if (opt.payment <= 0) {
+            ctx.write({ content: 'Eres pendejo o te haces' });
+            return;
+        }
+
+        const user = DB.getUser(ctx.author.id);
         const target = opt.user;
+
 
         if (!user.spend(opt.payment)) {
             ctx.write({ content: 'No tienes créditos suficientes' });
@@ -37,7 +42,7 @@ export default class Mute extends Command {
         }, time);
 
  
-        report({
+        Binnacle.report({
             type: AuditType.RENAME,
             user: ctx.author.id,
             recipient: target.id,

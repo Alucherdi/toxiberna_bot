@@ -11,32 +11,72 @@ export enum AuditType {
     SLOTMACHINE = 'SLOTMACHINE',
 };
 
-class Audit {
+export type Audit = {
     type: AuditType;
     recipient?: string;
     user: string;
     amount: number;
     timestamp: number;
     metadata?: any;
+}
+
+export class Binnacle {
+    public static report(data: Audit) {
+        const db = new Database(Bun.env.DB_PATH);
+
+        const recipient = data.recipient ?
+            "'" + data.recipient + "'" :
+            'NULL';
+
+        db.query(`
+            INSERT INTO audit(type, recipient, user, amount, timestamp) VALUES(
+                '${data.type}',
+                ${recipient},
+                '${data.user}',
+                ${data.amount},
+                ${data.timestamp}
+            );
+        `).run();
+    }
+
+    public static getHistory(id: string) {
+        const db = new Database(Bun.env.DB_PATH);
+        const statement = `
+            SELECT * FROM audit
+            WHERE user = '${id}'
+            ORDER BY timestamp DESC
+            LIMIT 20
+        `;
+        return db.query(statement).all();
+    }
+
+    public static getScoreboard(type: string) {
+        const db = new Database(Bun.env.DB_PATH);
+        const statements = {
+            'RENAME': `
+                SELECT *, COUNT(user) AS count FROM audit
+                WHERE type = '${type}'
+                GROUP BY user
+                ORDER BY count DESC
+            `,
+            'TIMEOUT': `
+                SELECT *, COUNT(recipient) AS count, SUM(amount) AS total FROM audit
+                WHERE type = '${type}'
+                GROUP BY recipient
+                ORDER BY total DESC
+            `,
+            'MUTE': `
+                SELECT *, COUNT(recipient) AS count, SUM(amount) AS total FROM audit
+                WHERE type = '${type}'
+                GROUP BY recipient
+                ORDER BY total DESC
+            `
+        };
+
+        return db.query(statements[type]).all();
+    }
 };
 
-export function report(data: Audit) {
-    const db = new Database(Bun.env.DB_PATH);
-
-    const recipient = data.recipient ?
-        "'" + data.recipient + "'" :
-        'NULL';
-
-    db.query(`
-        INSERT INTO audit(type, recipient, user, amount, timestamp) VALUES(
-            '${data.type}',
-            ${recipient},
-            '${data.user}',
-            ${data.amount},
-            ${data.timestamp}
-        );
-    `).run();
-}
 
 export class User {
     id: string;
@@ -52,7 +92,7 @@ export class User {
         this.credits += amount;
         this.write();
 
-        report({
+        Binnacle.report({
             amount,
             type: AuditType.MODIFY,
             user: this.id,
@@ -64,7 +104,7 @@ export class User {
 
     public spend(amount: number) {
         if ((this.credits - amount) < 0) {
-            report({
+            Binnacle.report({
                 amount,
                 type: AuditType.FAILED,
                 user: this.id,
@@ -105,15 +145,5 @@ export class DB {
         user.db = db;
 
         return user;
-    }
-
-    public static getBinnacle(): Audit[] {
-        const db = new Database(Bun.env.DB_PATH);
-        const binnacle = db
-            .query(`SELECT * FROM audit`)
-            .as(Audit)
-            .all();
-
-        return binnacle;
     }
 }

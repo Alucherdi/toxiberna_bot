@@ -1,5 +1,5 @@
 import { Command, CommandContext, createUserOption, Declare, Options } from "seyfert";
-import { DB } from "../utils/db";
+import { Binnacle, DB } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -15,33 +15,23 @@ const options = {
 })
 export default class Credits extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const audit = DB.getBinnacle();
-
         let roles = (await ctx.member.roles.list()).map(v => v.name);
         if (!roles.includes('Admin')) {
             ctx.write({ content: 'A ver hijo de tu putísima madre tu no eres admin saquese a la verga' });
             return;
         }
+        const target = ctx.options.user.id;
 
-        let target = ctx.options.user.id;
-        let formatted = audit
-            .filter(v => v.user == target)
+        const history = Binnacle.getHistory(target);
 
-        if (formatted.length == 0) {
+        if (history.length == 0) {
             ctx.write({ content: `No hay datos para mostrar` });
             return;
         }
 
-        let output = `History from @<${target}>:\n`;
-        for (let i = 0; i < formatted.length; i++) {
-            const { type, recipient, amount, timestamp } = formatted[i];
-            let date = new Date(timestamp).toLocaleString();
-            if(recipient) {
-                output += `\n${i + 1}. ${type} ${amount} to <@${recipient}> at ${date}`;
-            } else {
-                output += `\n${i + 1}. ${type} ${amount} at ${date}`;
-            }
-        }
+        const output = `<@${target}> history:\n` + 
+            history.map(({ type, recipient, user, amount, timestamp }) =>
+                `${type} ${amount} <@${user}> ${recipient ? `<@${recipient}>` : ''} at ${new Date(timestamp).toLocaleString()}`).join('\n');
 
         ctx.write({ content: output });
     }

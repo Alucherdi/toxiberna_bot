@@ -1,6 +1,6 @@
 import { Command, CommandContext, Declare } from "seyfert";
 import SlotMachine from "../utils/slot_machine";
-import { AuditType, DB, report } from "../utils/db";
+import { AuditType, Binnacle, DB } from "../utils/db";
 
 const cost = 1;
 const intentions = [1, 1, 1, 1, 1, 4, 10];
@@ -32,7 +32,7 @@ export default class SlotMachineC extends Command {
                 let credits = prizes[choosen];
                 user.modify(credits);
 
-                report({
+                Binnacle.report({
                     type: AuditType.SLOTMACHINE,
                     user: ctx.author.id,
                     recipient: ctx.author.id,

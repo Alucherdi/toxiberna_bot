@@ -1,5 +1,5 @@
 import { Command, CommandContext, createStringOption, createUserOption, Declare, Options } from "seyfert";
-import { AuditType, DB, report } from "../utils/db";
+import { AuditType, Binnacle, DB } from "../utils/db";
 
 const options = {
     user: createUserOption({
@@ -34,7 +34,7 @@ export default class ChangeName extends Command {
             target.id, { nick: ctx.options.nickname }, 'Por mis huevos'
         );
 
-        report({
+        Binnacle.report({
             type: AuditType.RENAME,
             user: ctx.author.id,
             recipient: target.id,

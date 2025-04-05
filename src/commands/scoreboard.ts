@@ -1,5 +1,5 @@
 import { Command, CommandContext, createStringOption, Declare, Options } from "seyfert";
-import { AuditType, DB } from "../utils/db";
+import { AuditType, Binnacle, DB } from "../utils/db";
 
 const filters = [ AuditType.MUTE, AuditType.TIMEOUT, AuditType.RENAME ];
 
@@ -32,32 +32,20 @@ const names = {
 })
 export default class Scoreboard extends Command {
     async run(ctx: CommandContext<typeof options>) {
-        const audit = DB.getBinnacle();
+        const type = ctx.options.type;
+        const list = Binnacle.getScoreboard(type);
+        const target   = type == QueryType.RENAME ? 'user' : 'recipient';
+        const criteria = type == QueryType.RENAME ? 'count' : 'total';
+        const modifier = {
+            RENAME: 1,
+            TIMEOUT: 60,
+            MUTE: 60_000
+        }[type];
+        const metric = type == QueryType.RENAME ? '' : 'min';
 
-        const filtered = audit.filter(({ type }) => filters.includes(type));
-        const query = ctx.options.type as unknown as AuditType;
-
-        const data = filtered.reduce<Record<string, number>>((acc, { recipient, type, amount }) => {
-            if (type !== query) {
-                return acc;
-            }
-
-            acc[recipient] = (acc[recipient] || 0) + (type === AuditType.RENAME ? 1 : amount);
-            return acc;
-        }, {});
-
-        let sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
-
-        if(sorted.length == 0) {
-            ctx.write({ content: `No hay datos para mostrar` });
-            return;
-        }
-
-        let output = `Top ${names[query]}:\n`;
-        for (let i = 0; i < sorted.length; i++) {
-            const [id, score] = sorted[i];
-            output += `    ${i + 1}. <@${id}>: ${query == AuditType.RENAME ? score : `${(score / 1000) / 60} minutos`}\n`;
-        }
+        let output = `Top ${names[type]}\n` + list
+            .map(v => `<@${v[target]}>: ${v[criteria] / modifier} ${metric}`)
+            .join('\n');
 
         ctx.write({ content: output });
     }

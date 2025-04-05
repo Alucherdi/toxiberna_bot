@@ -28,7 +28,7 @@ export default class Credits extends Command {
         }
 
         let target = ctx.options.user.id;
-        udb.modify(target, ctx.options.credits);
+        udb.modify(target, ctx.author.id, ctx.options.credits);
 
         await udb.write();
         ctx.write({ content: `Créditos de <@${ctx.options.user.id}>: ${(await udb.retrieve(target)).credits}` });

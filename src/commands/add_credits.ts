@@ -28,7 +28,7 @@ export default class Credits extends Command {
             return;
         }
 
-        user.modify(ctx.options.credits);
+        user.modify(ctx.options.credits, ctx.author.id);
         ctx.write({ content: `Créditos de <@${ctx.options.user.id}>: ${user.credits}` });
     }
 }

@@ -34,7 +34,7 @@ export default class Transfer extends Command {
         }
 
         const target = DB.getUser(ctx.options.user.id);
-        target.modify(credits);
+        target.modify(credits, ctx.author.id);
 
         ctx.write({ content: `Transferiste ${credits} créditos a <@${ctx.options.user.id}>, tu nuevo saldo es de: ${user.credits}` });
     }

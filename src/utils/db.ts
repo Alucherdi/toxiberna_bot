@@ -88,12 +88,13 @@ export class User {
         this.credits = credits;
     }
 
-    public modify(amount: number) {
+    public modify(amount: number, recipient?: string) {
         this.credits += amount;
         this.write();
 
         Binnacle.report({
             amount,
+            recipient: recipient,
             type: AuditType.MODIFY,
             user: this.id,
             timestamp: Date.now()

@@ -10,6 +10,10 @@ const options = {
         description: 'Payment',
         required: true
     }),
+    mask: createUserOption({
+        description: 'Hide as user (Makes it %300 more expensive)',
+        required: false
+    })
 };
 
 @Options(options)
@@ -27,8 +31,9 @@ export default class Timeout extends Command {
 
         const user = DB.getUser(ctx.author.id);
         const target = opt.user;
+        let from = opt.mask ? opt.mask!.id : ctx.author.id;
 
-        if (!user.spend(opt.payment)) {
+        if (!user.spend(opt.payment * (opt.mask ? 3 : 1))) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }
@@ -46,6 +51,6 @@ export default class Timeout extends Command {
             timestamp: Date.now()
         });
 
-        ctx.write({ content: `Aislaste a <@${target.id}>` });
+        return ctx.client.messages.write(ctx.channelId, { content:` <@${from}> Aisló a <@${target.id}>` });
     }
 }

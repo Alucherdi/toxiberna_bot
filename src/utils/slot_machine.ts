@@ -73,7 +73,7 @@ class SlotMachine {
         for (let i = 0; i < 90; i++) {
             frame = new Graphics((this.sheet.width + 2) * 3, this.sheet.height + 2);
             await this.generateFrame(i, frame);
-            this.frames.push(frame.frame());
+            this.frames.push(await frame.frame());
         }
 
         return await Graphics.gif(this.frames, 2, 4);

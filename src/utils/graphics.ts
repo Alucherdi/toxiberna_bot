@@ -1,11 +1,6 @@
 import sharp from "sharp";
 import { createGif } from "sharp-gif2";
-
-export type Image = {
-    width: number;
-    height: number;
-    data: Uint8Array;
-}
+import { createCanvas, loadImage, Canvas, type SKRSContext2D, type Image } from "@napi-rs/canvas";
 
 export class SpriteSheet {
     private path: string;
@@ -36,89 +31,58 @@ export class SpriteSheet {
 export class Graphics {
     private width: number;
     private height: number;
-    private buffer: Uint8Array;
+    private canvas: Canvas;
+    private ctx: SKRSContext2D;
 
     constructor(width: number, height: number) {
         this.width = width;
         this.height = height;
-        this.buffer = new Uint8Array(width * height * 3);
+        this.canvas = createCanvas(width, height);
+        this.ctx = this.canvas.getContext("2d");
     }
 
     public pixel(x: number, y: number, r: number, g: number, b: number) {
-        let i = (y * this.width + x) * 3;
-        this.buffer[i] = r;
-        this.buffer[i + 1] = g;
-        this.buffer[i + 2] = b;
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        this.ctx.fillRect(x, y, 1, 1);
     }
 
     public clear(r: number, g: number, b: number) {
-        for (let i = 0; i < this.buffer.length; i += 3) {
-            this.buffer[i] = r;
-            this.buffer[i + 1] = g;
-            this.buffer[i + 2] = b;
-        }
+        this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        this.ctx.fillRect(0, 0, this.width, this.height);
     }
 
     public image(x: number, y: number, image: Image) {
-        for (let i = 0; i < image.data.length; i += 4) {
-            let j = (y + Math.floor(i / 4 / image.width)) * this.width + x + (i / 4) % image.width;
-            this.buffer[j * 3] = image.data[i];
-            this.buffer[j * 3 + 1] = image.data[i + 1];
-            this.buffer[j * 3 + 2] = image.data[i + 2];
-        }
+        this.ctx.drawImage(image, x, y, image.width, image.height);
     }
 
     public imageEx(x: number, y: number, u: number, v: number, width: number, height: number, image: Image) {
-        for (let i = 0; i < height; i++) {
-            for (let j = 0; j < width; j++) {
-                let k = (v + i) * image.width + u + j;
-                let l = (y + i) * this.width + x + j;
-                this.buffer[l * 3] = image.data[k * 4];
-                this.buffer[l * 3 + 1] = image.data[k * 4 + 1];
-                this.buffer[l * 3 + 2] = image.data[k * 4 + 2];
-            }
-        }
+        this.ctx.drawImage(image, u, v, width, height, x, y, width, height);
     }
 
     public rect(x: number, y: number, width: number, height: number, r: number, g: number, b: number, filled: boolean = true) {
         if(!filled) {
-            for (let i = 0; i < width; ++i) {
-                this.pixel(x + i, y, r, g, b);
-                this.pixel(x + i, y + height - 1, r, g, b);
-            }
-
-            for (let i = 0; i < height; ++i) {
-                this.pixel(x, y + i, r, g, b);
-                this.pixel(x + width - 1, y + i, r, g, b);
-            }
+            this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+            this.ctx.strokeRect(x, y, width, height);
         } else {
-            for (let i = 0; i < width; ++i) {
-                for (let j = 0; j < height; ++j) {
-                    this.pixel(x + i, y + j, r, g, b);
-                }
-            }
+            this.ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            this.ctx.fillRect(x, y, width, height);
         }
     }
 
     public ellipse(x: number, y: number, radius: number, red: number, green: number, blue: number, filled: boolean = true) {
-        let r2 = radius * radius;
-        for (let i = -radius; i <= radius; ++i) {
-            for (let j = -radius; j <= radius; ++j) {
-                if(filled) {
-                    if (i * i + j * j <= r2) {
-                        this.pixel(x + i, y + j, red, green, blue);
-                    }
-                } else {
-                    if (i * i + j * j <= r2 && i * i + j * j >= r2 - radius) {
-                        this.pixel(x + i, y + j, red, green, blue);
-                    }
-                }
-            }
+        this.ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.closePath();
+        if(filled) {
+            this.ctx.fill();
+        } else {
+            this.ctx.stroke();
         }
     }
 
-    public frame() {
-        return sharp(this.buffer, {
+    public async frame() {
+        return sharp(this.canvas.data(), {
             raw: {
                 width: this.width,
                 height: this.height,
@@ -144,16 +108,7 @@ export class Graphics {
 
 export class Asset {
     static async load(path: string): Promise<Image> {
-        // load image as rgba
-        const file = Bun.file(path);
-        const image = sharp(await file.bytes());
-
-        const metadata = await image.metadata();
-        const data = await image.raw().ensureAlpha().toBuffer();
-        return {
-            width: metadata.width!,
-            height: metadata.height!,
-            data: data
-        };
+        const image = await loadImage(path);
+        return image;
     }
 }

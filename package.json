@@ -14,6 +14,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.70",
     "discord-api-types": "^0.37.101",
     "openai": "^4.87.3",
     "seyfert": "^2.1.0",

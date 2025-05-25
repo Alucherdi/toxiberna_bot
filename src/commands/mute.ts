@@ -10,6 +10,10 @@ const options = {
         description: 'Payment',
         required: true
     }),
+    mask: createUserOption({
+        description: 'Hide as user (Makes it %300 more expensive)',
+        required: false
+    })
 };
 
 @Options(options)
@@ -27,9 +31,9 @@ export default class Mute extends Command {
 
         const user = DB.getUser(ctx.author.id);
         const target = opt.user;
-
-
-        if (!user.spend(opt.payment)) {
+        let from = opt.mask ? opt.mask!.id : ctx.author.id;
+        
+        if (!user.spend(opt.payment * (opt.mask ? 3 : 1))) {
             ctx.write({ content: 'No tienes créditos suficientes' });
             return;
         }
@@ -40,7 +44,6 @@ export default class Mute extends Command {
         setTimeout(async () => {
             await member.setMute(false);
         }, time);
-
  
         Binnacle.report({
             type: AuditType.RENAME,
@@ -50,7 +53,7 @@ export default class Mute extends Command {
             timestamp: Date.now()
         });
 
-        ctx.write({ content: `Silenciaste a <@${target.id}>` });
+        return ctx.client.messages.write(ctx.channelId, { content:` <@${from}> Silenció a <@${target.id}>` });
     }
 }
 

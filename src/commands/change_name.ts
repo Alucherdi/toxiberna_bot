@@ -30,6 +30,11 @@ export default class ChangeName extends Command {
             return;
         }
 
+        if (ctx.author.id == ctx.options.user.id) {
+            ctx.write({ content: 'Apoco si muy huele pitos, no te puedes cambiar el nombre a ti mismo. No hay devoluciones btw' });
+            return;
+        }
+
         await (await ctx.guild()).members.edit(
             target.id, { nick: ctx.options.nickname }, 'Por mis huevos'
         );
